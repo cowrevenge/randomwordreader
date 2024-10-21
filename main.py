@@ -7,12 +7,15 @@ import pyttsx3
 # Initialize text-to-speech engine
 engine = pyttsx3.init()
 
+# Get available voices from pyttsx3
+voices = engine.getProperty('voices')
+
 
 class RandomWordSelectorApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Random Word Selector")
-        self.root.geometry("400x400")
+        self.root.geometry("400x600")  # Updated window size
 
         # Load button
         self.load_button = tk.Button(root, text="Load Excel Sheet", command=self.load_sheet)
@@ -39,6 +42,21 @@ class RandomWordSelectorApp:
         self.log_box = tk.Listbox(root, height=10, width=40, font=("Helvetica", 10))
         self.log_box.pack(pady=10)
         self.log_box.bind("<Double-Button-1>", self.on_double_click)
+
+        # Dropdown for selecting voice
+        self.voice_var = tk.StringVar(root)
+        self.voice_var.set(voices[0].name)  # Default to the first voice
+
+        self.voice_menu = tk.OptionMenu(root, self.voice_var, *[voice.name for voice in voices])
+        self.voice_menu.pack(pady=10)
+
+        # Slider for selecting speech rate
+        self.speed_label = tk.Label(root, text="Select Speech Rate:", font=("Helvetica", 12))
+        self.speed_label.pack(pady=10)
+
+        self.speed_slider = tk.Scale(root, from_=100, to_=300, orient="horizontal", length=200)
+        self.speed_slider.set(100)  # Default rate of 100 words per minute
+        self.speed_slider.pack(pady=10)
 
         self.data = None  # To store the words from the Excel file
         self.current_word = None  # To store the currently selected word
@@ -82,11 +100,22 @@ class RandomWordSelectorApp:
             # Disable the read button to avoid queuing multiple clicks
             self.read_button["state"] = "disabled"
 
+            # Set the selected voice
+            selected_voice_name = self.voice_var.get()
+            for voice in voices:
+                if voice.name == selected_voice_name:
+                    engine.setProperty('voice', voice.id)
+                    break
+
+            # Set the selected speech rate
+            selected_speed = self.speed_slider.get()
+            engine.setProperty('rate', selected_speed)
+
             # Speak the current word
             engine.say(self.current_word)
             engine.runAndWait()
 
-            # Wait for .5 second before enabling the read button again
+            # Wait for 500 milliseconds before enabling the read button again
             self.root.after(500, self.enable_read_button)
 
     def enable_read_button(self):
