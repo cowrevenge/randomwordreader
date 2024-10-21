@@ -7,11 +7,12 @@ import pyttsx3
 # Initialize text-to-speech engine
 engine = pyttsx3.init()
 
+
 class RandomWordSelectorApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Random Word Selector")
-        self.root.geometry("425x425")
+        self.root.geometry("400x400")
 
         # Load button
         self.load_button = tk.Button(root, text="Load Excel Sheet", command=self.load_sheet)
@@ -78,9 +79,18 @@ class RandomWordSelectorApp:
 
     def read_word(self):
         if self.current_word:
+            # Disable the read button to avoid queuing multiple clicks
+            self.read_button["state"] = "disabled"
+
             # Speak the current word
             engine.say(self.current_word)
             engine.runAndWait()
+
+            # Wait for .5 second before enabling the read button again
+            self.root.after(500, self.enable_read_button)
+
+    def enable_read_button(self):
+        self.read_button["state"] = "normal"
 
     def update_log(self, word):
         # Append new word to the log
@@ -102,6 +112,7 @@ class RandomWordSelectorApp:
             self.word_label.config(text=selected_word)  # Display it in the label
             self.current_word = selected_word  # Set it as the current word
             self.read_button["state"] = "normal"  # Enable the read button
+
 
 # Create the main window
 root = tk.Tk()
